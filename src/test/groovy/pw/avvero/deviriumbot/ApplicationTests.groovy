@@ -1,0 +1,58 @@
+package pw.avvero.deviriumbot
+
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.web.client.RestTemplate
+import spock.lang.Shared
+import spock.lang.Specification
+
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+
+@SpringBootTest
+@ActiveProfiles(profiles = "test")
+@ContextConfiguration
+@AutoConfigureMockMvc
+class ApplicationTests extends Specification {
+
+    @Autowired
+    RestTemplate restTemplate
+    @Autowired
+    MockMvc mockMvc
+    @Shared
+    RestExpectation restExpectation
+
+    def setup() {
+        restExpectation = new RestExpectation(restTemplate)
+    }
+
+    def cleanup() {
+        restExpectation.cleanup()
+    }
+
+    def "User Message Processing with OpenAI"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Заметка 1.md",
+                  "content": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "chat_id": "200000",
+            "text": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+}
