@@ -17,7 +17,7 @@ public class GitWebhookController {
     private final String deviriumChatId;
 
     public GitWebhookController(TelegramService telegramService,
-                                @Value("${devirium.chat-id}") String deviriumChatId) {
+                                @Value("${devirium.chatId}") String deviriumChatId) {
         this.telegramService = telegramService;
         this.deviriumChatId = deviriumChatId;
     }
