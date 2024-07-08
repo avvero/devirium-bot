@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  devirium-bot:
+    build: .
+    pull_policy: always
+    environment:
+      - token=token
+    ports:
+      - "8067:8080"
+    network_mode: "bridge"
