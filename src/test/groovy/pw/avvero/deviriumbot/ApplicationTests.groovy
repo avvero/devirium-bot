@@ -36,7 +36,7 @@ class ApplicationTests extends Specification {
         restExpectation.cleanup()
     }
 
-    def "User Message Processing with OpenAI"() {
+    def "User Message Processing"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
         when:
@@ -52,7 +52,32 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2"
+            "text": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2",
+            "parse_mode" : "markdown"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
+    def "User Message Processing with links"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Заметка 1.md",
+                  "content": "# Заметка 1\\n\\nТекст заметки\\n[[Заметка 2]]\\n#teg1 #teg2",
+                  "links": {
+                    "Заметка 2": "2021/2021-11/Заметка-2"
+                  }
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "chat_id": "200000",
+            "text": "# Заметка 1\\n\\nТекст заметки\\n[Заметка 2](https://devirium.com/2021/2021-11/Заметка-2)\\n#teg1 #teg2",
+            "parse_mode" : "markdown"
         }""", telegramRequestCaptor.bodyString, false)
     }
 }

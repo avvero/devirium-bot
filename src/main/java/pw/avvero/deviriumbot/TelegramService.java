@@ -22,16 +22,17 @@ public class TelegramService {
         this.token = token;
     }
 
-    public void sendMessage(String chatId, String replyToMessageId, String text) {
+    public void sendMessage(String chatId, String replyToMessageId, String text, String parseMode) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        SendMessageRequest request = new SendMessageRequest(chatId, replyToMessageId, text);
+        SendMessageRequest request = new SendMessageRequest(chatId, replyToMessageId, text, parseMode);
         HttpEntity<SendMessageRequest> requestEntity = new HttpEntity<>(request, headers);
         restTemplate.postForObject(url + "/" + token + "/sendMessage", requestEntity, Object.class);
     }
 
     public record SendMessageRequest(@JsonProperty("chat_id") String chatId,
                                      @JsonProperty("reply_to_message_id") String replyToMessageId,
-                                     String text) {
+                                     String text,
+                                     @JsonProperty("parse_mode") String parseMode) {
     }
 }

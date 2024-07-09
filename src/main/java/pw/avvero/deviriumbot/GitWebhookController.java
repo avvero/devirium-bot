@@ -10,21 +10,33 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import static java.lang.String.format;
+
 @RestController
 public class GitWebhookController {
 
     private final TelegramService telegramService;
     private final String deviriumChatId;
+    private final String deviriumLink;
 
     public GitWebhookController(TelegramService telegramService,
-                                @Value("${devirium.chatId}") String deviriumChatId) {
+                                @Value("${devirium.chatId}") String deviriumChatId,
+                                @Value("${devirium.link}") String deviriumLink) {
         this.telegramService = telegramService;
         this.deviriumChatId = deviriumChatId;
+        this.deviriumLink = deviriumLink;
     }
 
     @PostMapping("/git/webhook")
     public void process(@RequestBody GitWebhookRequest request) {
-        telegramService.sendMessage(deviriumChatId, null, request.content);
+        String content = request.content;
+        if (request.links != null) {
+            for (Map.Entry<String, String> link : request.links.entrySet()) {
+                String url = format("[%s](%s/%s)", link.getKey(), deviriumLink, link.getValue());
+                content = content.replace(format("[[%s]]", link.getKey()), url);
+            }
+        }
+        telegramService.sendMessage(deviriumChatId, null, content, "markdown");
     }
 
     @ExceptionHandler(value = Exception.class)
@@ -34,6 +46,6 @@ public class GitWebhookController {
         return new ResponseEntity<>(response, status);
     }
 
-    public record GitWebhookRequest(String title, String content) {
+    public record GitWebhookRequest(String title, String content, Map<String, String> links) {
     }
 }
