@@ -27,7 +27,7 @@ public class RestExpectation {
         this.telegram = new TelegramMock() {
             @Override
             public RequestCaptor sendMessage(ResponseCreator responseCreator) {
-                return map(mockServer, "https://api.telegram.test/bot123abc123/sendMessage", responseCreator);
+                return map(mockServer, "https://api.telegram.test/bot123abc123/sendMessage?disable_web_page_preview=true", responseCreator);
             }
         };
     }

@@ -42,7 +42,8 @@ public class GitWebhookController {
                 content = content.replace(format("[[%s]]", link.getKey()), url);
             }
         }
-        for (char ch : new char[]{'_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'}) {
+        // exclude: '>', '[', ']', '(', ')'
+        for (char ch : new char[]{'_', '*', '~', '`', '#', '+', '-', '=', '|', '{', '}', '.', '!'}) {
             content = content.replace("" + ch, "\\" + ch);
         }
         telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");

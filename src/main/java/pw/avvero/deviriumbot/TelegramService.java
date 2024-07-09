@@ -27,7 +27,7 @@ public class TelegramService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         SendMessageRequest request = new SendMessageRequest(chatId, replyToMessageId, text, parseMode);
         HttpEntity<SendMessageRequest> requestEntity = new HttpEntity<>(request, headers);
-        restTemplate.postForObject(url + "/" + token + "/sendMessage", requestEntity, Object.class);
+        restTemplate.postForObject(url + "/" + token + "/sendMessage?disable_web_page_preview=true", requestEntity, Object.class);
     }
 
     public record SendMessageRequest(@JsonProperty("chat_id") String chatId,

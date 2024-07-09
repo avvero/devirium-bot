@@ -93,7 +93,7 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "\\\\# Заметка 1\\n\\nТекст заметки\\n\\\\[Заметка 2\\\\]\\\\(https://devirium\\\\.com/2021/2021\\\\-11/Заметка\\\\-2\\\\)\\n\\\\#teg1 \\\\#teg2",
+            "text": "\\\\# Заметка 1\\n\\nТекст заметки\\n[Заметка 2](https://devirium\\\\.com/2021/2021\\\\-11/Заметка\\\\-2)\\n\\\\#teg1 \\\\#teg2",
             "parse_mode" : "MarkdownV2"
         }""", telegramRequestCaptor.bodyString, false)
     }
@@ -119,5 +119,6 @@ class ApplicationTests extends Specification {
         "Заметка"                                                   | "Заметка"
         "https://devirium/2021/2021-11/trick-of-abusive-assurances" | "https://devirium/2021/2021\\-11/trick\\-of\\-abusive\\-assurances"
         "Заметка _"                                                 | "Заметка \\_"
+        ">Цитата"                                                   | ">Цитата"
     }
 }
