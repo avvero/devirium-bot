@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -52,8 +53,8 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2",
-            "parse_mode" : "markdown"
+            "text": "\\\\# Заметка 1\\n\\nТекст заметки\\n\\\\#teg1 \\\\#teg2",
+            "parse_mode" : "MarkdownV2"
         }""", telegramRequestCaptor.bodyString, false)
     }
 
@@ -92,8 +93,31 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "# Заметка 1\\n\\nТекст заметки\\n[Заметка 2](https://devirium.com/2021/2021-11/Заметка-2)\\n#teg1 #teg2",
-            "parse_mode" : "markdown"
+            "text": "\\\\# Заметка 1\\n\\nТекст заметки\\n\\\\[Заметка 2\\\\]\\\\(https://devirium\\\\.com/2021/2021\\\\-11/Заметка\\\\-2\\\\)\\n\\\\#teg1 \\\\#teg2",
+            "parse_mode" : "MarkdownV2"
         }""", telegramRequestCaptor.bodyString, false)
+    }
+
+    @Unroll
+    def "User Message Processing with escaped character"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Заметка 1.md",
+                  "content": "$content"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        telegramRequestCaptor.body.text == expected
+        where:
+        content                                                     | expected
+        "Заметка"                                                   | "Заметка"
+        "https://devirium/2021/2021-11/trick-of-abusive-assurances" | "https://devirium/2021/2021\\-11/trick\\-of\\-abusive\\-assurances"
+        "Заметка _"                                                 | "Заметка \\_"
     }
 }
