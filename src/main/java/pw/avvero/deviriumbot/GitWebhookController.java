@@ -36,15 +36,16 @@ public class GitWebhookController {
             return;
         }
         String content = request.content;
+        // exclude: '>'
+        for (char ch : new char[]{'_', '*', '~', '`', '#', '+', '-', '=', '|', '{', '}', '.', '!', '[', ']', '(', ')'}) {
+            content = content.replace("" + ch, "\\" + ch);
+        }
+        // links
         if (request.links != null) {
             for (Map.Entry<String, String> link : request.links.entrySet()) {
                 String url = format("[%s](%s/%s)", link.getKey(), deviriumLink, link.getValue());
-                content = content.replace(format("[[%s]]", link.getKey()), url);
+                content = content.replace(format("\\[\\[%s\\]\\]", link.getKey()), url);
             }
-        }
-        // exclude: '>', '[', ']', '(', ')'
-        for (char ch : new char[]{'_', '*', '~', '`', '#', '+', '-', '=', '|', '{', '}', '.', '!'}) {
-            content = content.replace("" + ch, "\\" + ch);
         }
         telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");
     }

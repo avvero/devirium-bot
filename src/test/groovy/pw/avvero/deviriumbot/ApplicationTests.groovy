@@ -120,5 +120,8 @@ class ApplicationTests extends Specification {
         "https://devirium/2021/2021-11/trick-of-abusive-assurances" | "https://devirium/2021/2021\\-11/trick\\-of\\-abusive\\-assurances"
         "Заметка _"                                                 | "Заметка \\_"
         ">Цитата"                                                   | ">Цитата"
+        "[inline URL](http://www.example.com/)"                     | "[inline URL](http://www.example.com/)"
+        "Раз (два) три"                                             | "Раз \\(два\\) три"
+        "Раз [два] три"                                             | "Раз \\[два\\] три"
     }
 }
