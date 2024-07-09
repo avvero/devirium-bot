@@ -1,5 +1,6 @@
 package pw.avvero.deviriumbot;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
+@Slf4j
 @RestController
 public class GitWebhookController {
 
@@ -29,6 +31,10 @@ public class GitWebhookController {
 
     @PostMapping("/git/webhook")
     public void process(@RequestBody GitWebhookRequest request) {
+        if (request.content.contains("#draft")) {
+            log.debug("Note {} would be ignored because of #draft tag", request.title);
+            return;
+        }
         String content = request.content;
         if (request.links != null) {
             for (Map.Entry<String, String> link : request.links.entrySet()) {

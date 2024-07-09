@@ -57,6 +57,22 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
+    def "Ignore drafts"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Заметка 1.md",
+                  "content": "# Заметка 1\\n\\nТекст заметки\\n#teg1 #teg2 #draft"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 0
+    }
+
     def "User Message Processing with links"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(CustomMockRestResponseCreators.withSuccess("{}"))
