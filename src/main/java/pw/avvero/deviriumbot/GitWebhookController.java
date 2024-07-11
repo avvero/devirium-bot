@@ -19,25 +19,28 @@ public class GitWebhookController {
 
     private final TelegramService telegramService;
     private final String deviriumChatId;
+    private final String gardenerChatId;
     private final String deviriumLink;
 
     public GitWebhookController(TelegramService telegramService,
                                 @Value("${devirium.chatId}") String deviriumChatId,
+                                @Value("${devirium.gardenerChatId}") String gardenerChatId,
                                 @Value("${devirium.link}") String deviriumLink) {
         this.telegramService = telegramService;
         this.deviriumChatId = deviriumChatId;
+        this.gardenerChatId = gardenerChatId;
         this.deviriumLink = deviriumLink;
     }
 
     @PostMapping("/git/webhook")
     public void process(@RequestBody GitWebhookRequest request) {
         if (request.content.contains("#draft")) {
-            log.debug("Note {} would be ignored because of #draft tag", request.title);
+            log.debug("Note {} would be ignored because of #draft tag", request.file);
             return;
         }
         String content = request.content;
-        // exclude: '>'
-        for (char ch : new char[]{'_', '*', '~', '`', '#', '+', '-', '=', '|', '{', '}', '.', '!', '[', ']', '(', ')'}) {
+        // exclude: '>', '`'
+        for (char ch : new char[]{'_', '*', '~', '#', '+', '-', '=', '|', '{', '}', '.', '!', '[', ']', '(', ')'}) {
             content = content.replace("" + ch, "\\" + ch);
         }
         // links
@@ -47,7 +50,11 @@ public class GitWebhookController {
                 content = content.replace(format("\\[\\[%s\\]\\]", link.getKey()), url);
             }
         }
-        telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");
+        try {
+            telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");
+        } catch (Exception e){
+            telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: %s", request.file, e.getMessage()), null);
+        }
     }
 
     @ExceptionHandler(value = Exception.class)
@@ -57,6 +64,6 @@ public class GitWebhookController {
         return new ResponseEntity<>(response, status);
     }
 
-    public record GitWebhookRequest(String title, String content, Map<String, String> links) {
+    public record GitWebhookRequest(String file, String content, Map<String, String> links) {
     }
 }

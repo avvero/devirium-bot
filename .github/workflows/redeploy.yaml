@@ -43,5 +43,6 @@ jobs:
             docker run -d --name devirium-bot -p 8067:8080 \
               -e telegram_token=${{ secrets.TELEGRAM_TOKEN }} \
               -e devirium_chatId=${{ secrets.DEVIRIUM_CHAT_ID }} \
+              -e gardener_chatId=${{ secrets.GARDENER_CHAT_ID }} \
               -e devirium_link=${{ secrets.DEVIRIUM_LINK }} \
               avvero/devirium-bot:latest

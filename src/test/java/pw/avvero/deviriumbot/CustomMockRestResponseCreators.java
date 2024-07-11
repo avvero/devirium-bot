@@ -11,6 +11,8 @@ import org.springframework.web.client.ResourceAccessException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -20,6 +22,9 @@ public class CustomMockRestResponseCreators extends MockRestResponseCreators {
 
     public static ResponseCreator withSuccess(@Language("JSON") String body) {
         return MockRestResponseCreators.withSuccess(body, APPLICATION_JSON);
+    }
+    public static ResponseCreator withBadRequest(@Language("JSON") String body) {
+        return MockRestResponseCreators.withBadRequest().contentType(APPLICATION_JSON).body(body);
     }
 
     public static ResponseCreator withResourceAccessException() {
@@ -35,5 +40,13 @@ public class CustomMockRestResponseCreators extends MockRestResponseCreators {
     public static String fromFile(String file, Map<String, Object> values) throws IOException {
         String text = IOGroovyMethods.getText(ResourceGroovyMethods.newReader(new File("src/test/resources/" + file)));
         return new StringSubstitutor(values).replace(text);
+    }
+
+    public static ResponseCreator chain(ResponseCreator... responseCreators) {
+        return new ChainResponseCreator(Arrays.asList(responseCreators));
+    }
+
+    public static ResponseCreator chain(Collection<ResponseCreator> collection) {
+        return new ChainResponseCreator(collection);
     }
 }
