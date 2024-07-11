@@ -27,10 +27,7 @@ public class TelegramMessageMapper {
         Map<String, String> meta = new HashMap<>();
         // Extract meta
         content = extractMeta(content, meta, ZET_LINK, MD_LINK);
-        // Escape characters except: '>', '`'
-        for (char ch : new char[]{'_', '*', '~', '#', '+', '-', '=', '|', '{', '}', '.', '!', '[', ']', '(', ')'}) {
-            content = content.replace("" + ch, "\\" + ch);
-        }
+        content = escape(content);
         // Enrich meta
         for (Map.Entry<String, String> entry : meta.entrySet()) {
             content = content.replace(entry.getKey(), entry.getValue());
@@ -48,10 +45,18 @@ public class TelegramMessageMapper {
             throw new Exception(format("Can't resolve link %s", matcherUnresolvedLink.group()));
         }
         if (file != null) {
-            return format("*%s*\n\n%s", file.replace(".md", ""), content);
+            return format("*%s*\n\n%s", escape(file.replace(".md", "")), content);
         } else {
             return content;
         }
+    }
+
+    private String escape(String value) {
+        // Escape characters except: '>', '`'
+        for (char ch : new char[]{'_', '*', '~', '#', '+', '-', '=', '|', '{', '}', '.', '!', '[', ']', '(', ')'}) {
+            value = value.replace("" + ch, "\\" + ch);
+        }
+        return value;
     }
 
     private String extractMeta(String content, Map<String, String> meta, Pattern... patterns) {
