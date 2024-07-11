@@ -48,7 +48,7 @@ public class TelegramMessageMapper {
             throw new Exception(format("Can't resolve link %s", matcherUnresolvedLink.group()));
         }
         if (file != null) {
-            return format("\\# %s\n%s", file.replace(".md", ""), content);
+            return format("*%s*\n%s", file.replace(".md", ""), content);
         } else {
             return content;
         }
