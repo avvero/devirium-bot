@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service
 public class TelegramService {
     private final RestTemplate restTemplate;
@@ -39,6 +41,7 @@ public class TelegramService {
         try {
             restTemplate.postForObject(url + "/" + token + "/sendMessage?disable_web_page_preview=true", requestEntity, Object.class);
         } catch (HttpClientErrorException e) {
+            log.error(e.getMessage(), e);
             SendMessageResponse response = objectMapper.readValue(e.getResponseBodyAsString(), SendMessageResponse.class);
             if (!response.ok) {
                 throw new TelegramException(response.description);
