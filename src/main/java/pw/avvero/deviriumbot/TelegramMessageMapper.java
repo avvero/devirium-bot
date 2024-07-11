@@ -23,7 +23,7 @@ public class TelegramMessageMapper {
         this.deviriumLink = deviriumLink;
     }
 
-    public String map(String content, Map<String, String> links) throws Exception {
+    public String map(String file, String content, Map<String, String> links) throws Exception {
         Map<String, String> meta = new HashMap<>();
         // Extract meta
         content = extractMeta(content, meta, ZET_LINK, MD_LINK);
@@ -47,7 +47,11 @@ public class TelegramMessageMapper {
         if (matcherUnresolvedLink.find()) {
             throw new Exception(format("Can't resolve link %s", matcherUnresolvedLink.group()));
         }
-        return content;
+        if (file != null) {
+            return format("\\# %s\n%s", file.replace(".md", ""), content);
+        } else {
+            return content;
+        }
     }
 
     private String extractMeta(String content, Map<String, String> meta, Pattern... patterns) {

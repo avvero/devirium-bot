@@ -46,7 +46,7 @@ class ApplicationTests extends Specification {
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
                   "file": "Note 1.md",
-                  "content": "# Note 1\\n\\nNote text\\n#teg1 #teg2"
+                  "content": "Note text\\n#teg1 #teg2"
                 }""".toString())
                 .accept(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -54,7 +54,7 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "\\\\# Note 1\\n\\nNote text\\n\\\\#teg1 \\\\#teg2",
+            "text": "\\\\# Note 1\\nNote text\\n\\\\#teg1 \\\\#teg2",
             "parse_mode" : "MarkdownV2"
         }""", telegramRequestCaptor.bodyString, false)
     }
@@ -67,7 +67,7 @@ class ApplicationTests extends Specification {
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
                   "file": "Note 1.md",
-                  "content": "# Note 1\\n\\nNote text\\n#teg1 #teg2 #draft"
+                  "content": "Note text\\n#teg1 #teg2 #draft"
                 }""".toString())
                 .accept(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -83,7 +83,7 @@ class ApplicationTests extends Specification {
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
                   "file": "Note 1.md",
-                  "content": "# Note 1\\n\\nNote text\\n[[Note 2]]\\n#teg1 #teg2",
+                  "content": "Note text\\n[[Note 2]]\\n#teg1 #teg2",
                   "links": {
                     "Note 2": "2021/2021-11/Note-2"
                   }
@@ -94,7 +94,7 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         assertEquals("""{
             "chat_id": "200000",
-            "text": "\\\\# Note 1\\n\\nNote text\\n[Note 2](https://devirium.com/2021/2021-11/Note-2)\\n\\\\#teg1 \\\\#teg2",
+            "text": "\\\\# Note 1\\nNote text\\n[Note 2](https://devirium.com/2021/2021-11/Note-2)\\n\\\\#teg1 \\\\#teg2",
             "parse_mode" : "MarkdownV2"
         }""", telegramRequestCaptor.bodyString, false)
     }
@@ -107,7 +107,7 @@ class ApplicationTests extends Specification {
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
                   "file": "Note 1.md",
-                  "content": "# Note 1\\n\\nNote text\\n[[Note 2]]\\n#teg1 #teg2",
+                  "content": "Note text\\n[[Note 2]]\\n#teg1 #teg2",
                   "links": {
                     "unexpected": "2021/2021-11/Note-2"
                   }
@@ -130,7 +130,7 @@ class ApplicationTests extends Specification {
         mockMvc.perform(post("/git/webhook")
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
-                  "file": "Note 1.md",
+                  "file": null,
                   "content": "$content"
                 }""".toString())
                 .accept(APPLICATION_JSON_VALUE))
