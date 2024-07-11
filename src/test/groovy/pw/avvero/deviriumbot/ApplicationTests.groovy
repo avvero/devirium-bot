@@ -99,6 +99,29 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
+    def "User Message Processing exception if link is not provided"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note 1.md",
+                  "content": "# Note 1\\n\\nNote text\\n[[Note 2]]\\n#teg1 #teg2",
+                  "links": {
+                    "unexpected": "2021/2021-11/Note-2"
+                  }
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "text": "Can't process Note 1.md: Can't resolve link [[Note 2]]",
+            "chat_id": "300000"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
     @Unroll
     def "User Message Processing with escaped character"() {
         setup:
