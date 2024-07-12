@@ -35,7 +35,7 @@ public class TelegramMessageMapper {
         // Update links with real ones
         if (links != null) {
             for (Map.Entry<String, String> link : links.entrySet()) {
-                String url = format("[%s](%s/%s)", link.getKey(), deviriumLink, link.getValue());
+                String url = format("[%s](%s/%s)", escape(link.getKey()), deviriumLink, link.getValue());
                 content = content.replace(format("[[%s]]", link.getKey()), url);
             }
         }
