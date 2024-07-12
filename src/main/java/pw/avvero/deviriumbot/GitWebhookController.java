@@ -34,6 +34,10 @@ public class GitWebhookController {
 
     @PostMapping("/git/webhook")
     public void process(@RequestBody GitWebhookRequest request) {
+        if ("index.md".equals(request.file)) {
+            log.debug("Index note would be ignored");
+            return;
+        }
         if (request.content.contains("#draft") || request.content.contains("#idea")
                 || request.content.contains("#notg") || request.content.contains("#wtf")) {
             log.debug("Note {} would be ignored because of #draft tag", request.file);
