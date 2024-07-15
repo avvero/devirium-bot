@@ -38,7 +38,7 @@ class ApplicationTests extends Specification {
         restExpectation.cleanup()
     }
 
-    def "User Message Processing"() {
+    def "Note goes to telegram channel"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
@@ -59,7 +59,7 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
-    def "Ignore drafts"() {
+    def "Draft note is skipped"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
@@ -75,7 +75,7 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 0
     }
 
-    def "User Message Processing with links"() {
+    def "Note with resolved links goes to telegram channel"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
@@ -100,7 +100,7 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
-    def "User Message Processing exception if link is not provided"() {
+    def "Note with unresolved links wouldn't be sent to telegram channel"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
@@ -124,7 +124,7 @@ class ApplicationTests extends Specification {
     }
 
     @Unroll
-    def "User Message Processing with escaped character"() {
+    def "Note with special symbols goes to telegram channel"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
@@ -153,7 +153,7 @@ class ApplicationTests extends Specification {
         "sdf```d```"                                                | "sdf```d```"
     }
 
-    def "User Message Processing with error"() {
+    def "Message goes to admin if exception is occurred with send message method"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(
                 chain(
