@@ -40,6 +40,7 @@ class ApplicationTests extends Specification {
 
     def "Note goes to telegram channel"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
         mockMvc.perform(post("/git/webhook")
@@ -59,8 +60,73 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
+    def "Note goes through openai corrector successfully and goes to telegram channel"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        def openaiRequest = restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note.md",
+                  "content": "Some note"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        openaiRequest.times == 1
+        assertEquals("""{
+          "model": "gpt-4",
+          "messages": [{
+            "role": "user", 
+            "content": "Please check the note below, if nothing to fix just return 'Correct'. Note:\\nSome note"
+          }]
+        }""", openaiRequest.bodyString, false)
+        openaiRequest.headers["Authorization"].last == "Bearer abc123"
+        and:
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "chat_id": "200000",
+            "text": "*Note*\\n\\nSome note",
+            "parse_mode" : "MarkdownV2"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
+    def "Note goes through openai corrector unsuccessfully and goes to admin channel"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        def openaiRequest = restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Some note"}}]}'))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note.md",
+                  "content": "Soome note"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        openaiRequest.times == 1
+        assertEquals("""{
+          "model": "gpt-4",
+          "messages": [{
+            "role": "user", 
+            "content": "Please check the note below, if nothing to fix just return 'Correct'. Note:\\nSoome note"
+          }]
+        }""", openaiRequest.bodyString, false)
+        openaiRequest.headers["Authorization"].last == "Bearer abc123"
+        and:
+        telegramRequestCaptor.times == 1
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "text": "Can't process Note.md: Incorrect text, proposal:\\nSome note",
+            "chat_id": "300000"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
     def "Draft note is skipped"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
         mockMvc.perform(post("/git/webhook")
@@ -77,6 +143,7 @@ class ApplicationTests extends Specification {
 
     def "Note with resolved links goes to telegram channel"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
         mockMvc.perform(post("/git/webhook")
@@ -102,6 +169,7 @@ class ApplicationTests extends Specification {
 
     def "Note with unresolved links wouldn't be sent to telegram channel"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
         mockMvc.perform(post("/git/webhook")
@@ -126,6 +194,7 @@ class ApplicationTests extends Specification {
     @Unroll
     def "Note with special symbols goes to telegram channel"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
         when:
         mockMvc.perform(post("/git/webhook")
@@ -155,6 +224,7 @@ class ApplicationTests extends Specification {
 
     def "Message goes to admin if exception is occurred with send message method"() {
         setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(
                 chain(
                         withBadRequest("""{

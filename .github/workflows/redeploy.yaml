@@ -45,4 +45,6 @@ jobs:
               -e devirium_chatId=${{ secrets.DEVIRIUM_CHAT_ID }} \
               -e devirium_gardenerChatId=${{ secrets.GARDENER_CHAT_ID }} \
               -e devirium_link=${{ secrets.DEVIRIUM_LINK }} \
+              -e openai_token=${{ secrets.OPENAI_TOKEN }} \
+              -e corrector_prompt=${{ secrets.CORRECTOR_PROMPT }} \
               avvero/devirium-bot:latest

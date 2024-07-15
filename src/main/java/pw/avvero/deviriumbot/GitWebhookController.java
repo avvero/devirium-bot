@@ -18,18 +18,24 @@ import static java.lang.String.format;
 public class GitWebhookController {
 
     private final TelegramService telegramService;
+    private final OpenaiService openaiService;
     private final TelegramMessageMapper mapper;
     private final String deviriumChatId;
     private final String gardenerChatId;
+    private final String correctorPrompt;
 
     public GitWebhookController(TelegramService telegramService,
+                                OpenaiService openaiService,
                                 TelegramMessageMapper mapper,
                                 @Value("${devirium.chatId}") String deviriumChatId,
-                                @Value("${devirium.gardenerChatId}") String gardenerChatId) {
+                                @Value("${devirium.gardenerChatId}") String gardenerChatId,
+                                @Value("${corrector.prompt}") String correctorPrompt) {
         this.telegramService = telegramService;
+        this.openaiService = openaiService;
         this.mapper = mapper;
         this.deviriumChatId = deviriumChatId;
         this.gardenerChatId = gardenerChatId;
+        this.correctorPrompt = correctorPrompt;
     }
 
     @PostMapping("/git/webhook")
@@ -40,6 +46,12 @@ public class GitWebhookController {
         }
         if (request.content.contains("#draft") || request.content.contains("#notg") || request.content.contains("#wtf")) {
             log.debug("Note {} would be ignored because of #draft tag", request.file);
+            return;
+        }
+        String correctorResult = openaiService.process(correctorPrompt + request.content);
+        if (!"Correct".equalsIgnoreCase(correctorResult)) {
+            telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: Incorrect text, proposal:\n%s",
+                    request.file, correctorResult), "markdown");
             return;
         }
         try {
