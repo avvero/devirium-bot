@@ -223,7 +223,11 @@ class ApplicationTests extends Specification {
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
                   "file": null,
-                  "content": "$content"
+                  "content": "$content",
+                  "links": {
+                    "Podlodka": "2024-07/Podlodka",
+                    "Проветримся": "review/Проветримся"
+                  }
                 }""".toString())
                 .accept(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -231,17 +235,18 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 1
         telegramRequestCaptor.body.text == expected
         where:
-        content                                                     | expected
-        "Note"                                                      | "Note"
-        "https://devirium/2021/2021-11/trick-of-abusive-assurances" | "https://devirium/2021/2021\\-11/trick\\-of\\-abusive\\-assurances"
-        "Note _"                                                    | "Note \\_"
-        ">Text"                                                     | ">Text"
-        "[inline URL](http://www.example.com/)"                     | "[inline URL](http://www.example.com/)"
-        "One (Two) Three"                                           | "One \\(Two\\) Three"
-        "One [Two] Three"                                           | "One \\[Two\\] Three"
-        "sdf`d"                                                     | "sdf\\`d"
-        "sdf`d`"                                                    | "sdf`d`"
-        "sdf```d```"                                                | "sdf```d```"
+        content                                                                                   | expected
+        "Note"                                                                                    | "Note"
+        "https://devirium/2021/2021-11/trick-of-abusive-assurances"                               | "https://devirium/2021/2021\\-11/trick\\-of\\-abusive\\-assurances"
+        "Note _"                                                                                  | "Note \\_"
+        ">Text"                                                                                   | ">Text"
+        "[inline URL](http://www.example.com/)"                                                   | "[inline URL](http://www.example.com/)"
+        "One (Two) Three"                                                                         | "One \\(Two\\) Three"
+        "One [Two] Three"                                                                         | "One \\[Two\\] Three"
+        "sdf`d"                                                                                   | "sdf\\`d"
+        "sdf`d`"                                                                                  | "sdf`d`"
+        "sdf```d```"                                                                              | "sdf```d```"
+        "Выпуск подкаста [[Podlodka]], гость - хост подкаста [[Проветримся]]. #podcast #stoicism" | "Выпуск подкаста [Podlodka](https://devirium.com/2024-07/Podlodka), гость \\- хост подкаста [Проветримся](https://devirium.com/review/Проветримся)\\. \\#podcast \\#stoicism"
     }
 
     @Unroll

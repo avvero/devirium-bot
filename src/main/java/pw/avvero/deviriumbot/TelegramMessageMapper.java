@@ -14,7 +14,7 @@ import static java.lang.String.format;
 @Component
 public class TelegramMessageMapper {
 
-    public static final Pattern ZET_LINK = Pattern.compile("\\[\\[.*\\]\\]");
+    public static final Pattern ZET_LINK = Pattern.compile("\\[\\[.*?\\]\\]");
     public static final Pattern MD_LINK = Pattern.compile("\\[([^\\]]+)\\]\\(([^\\)]+)\\)");
 
     private final String deviriumLink;
