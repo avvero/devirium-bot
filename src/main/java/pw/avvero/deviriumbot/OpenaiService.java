@@ -31,11 +31,11 @@ public class OpenaiService {
     }
 
     @SneakyThrows
-    public String process(String content) {
+    public String process(String model, String content) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
-        CompletionRequest request = new CompletionRequest("gpt-4o", List.of(new CompletionMessage("user", content)));
+        CompletionRequest request = new CompletionRequest(model, List.of(new CompletionMessage("user", content)));
         HttpEntity<CompletionRequest> requestEntity = new HttpEntity<>(request, headers);
         try {
             CompletionResponse response = restTemplate.postForObject(url + "/v1/chat/completions", requestEntity,

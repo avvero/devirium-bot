@@ -48,8 +48,8 @@ public class GitWebhookController {
             log.debug("Note {} would be ignored because of #draft tag", request.file);
             return;
         }
-        String correctorResult = openaiService.process(correctorPrompt + "\n" + request.content);
-        if (!"Correct".equalsIgnoreCase(correctorResult)) {
+        String correctorResult = openaiService.process("gpt-4o", correctorPrompt + "\n" + request.content);
+        if (!correctorResult.contains("Note is correct")) {
             telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: Incorrect text, proposal:\n%s",
                     request.file, correctorResult), "markdown");
             return;
