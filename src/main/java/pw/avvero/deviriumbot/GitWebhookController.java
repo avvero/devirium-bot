@@ -50,7 +50,7 @@ public class GitWebhookController {
         }
         // gpt-4o resist to follow instruction
         String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + request.content);
-        if (!correctorResult.contains("Note is correct")) {
+        if (!correctorResult.toLowerCase().contains("note is correct")) {
             telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: Incorrect text, proposal:\n%s",
                     request.file, correctorResult), "markdown");
             return;
