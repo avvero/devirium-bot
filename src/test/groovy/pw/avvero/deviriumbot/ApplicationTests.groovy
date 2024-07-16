@@ -76,7 +76,7 @@ class ApplicationTests extends Specification {
         then:
         openaiRequest.times == 1
         assertEquals("""{
-          "model": "gpt-4",
+          "model": "gpt-4o",
           "messages": [{
             "role": "user", 
             "content": "Please check the note below, if nothing to fix just return 'Correct'. Note:\\nSome note"
@@ -108,7 +108,7 @@ class ApplicationTests extends Specification {
         then:
         openaiRequest.times == 1
         assertEquals("""{
-          "model": "gpt-4",
+          "model": "gpt-4o",
           "messages": [{
             "role": "user", 
             "content": "Please check the note below, if nothing to fix just return 'Correct'. Note:\\nSoome note"
@@ -220,6 +220,36 @@ class ApplicationTests extends Specification {
         "sdf`d"                                                     | "sdf\\`d"
         "sdf`d`"                                                    | "sdf`d`"
         "sdf```d```"                                                | "sdf```d```"
+    }
+
+    @Unroll
+    def "Note with special symbols in file name goes to telegram channel"() {
+        setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "$fileName",
+                  "content": "Note text"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        telegramRequestCaptor.body.text == "*$expected*\n\nNote text"
+        where:
+        fileName          | expected
+        "Note"            | "Note"
+        "Note - 2"        | "Note \\- 2"
+        "Note _"          | "Note \\_"
+        ">Text"           | ">Text"
+        "One (Two) Three" | "One \\(Two\\) Three"
+        "One [Two] Three" | "One \\[Two\\] Three"
+        "sdf`d"           | "sdf\\`d"
+        "sdf`d`"          | "sdf`d`"
+        "sdf```d```"      | "sdf```d```"
     }
 
     def "Message goes to admin if exception is occurred with send message method"() {

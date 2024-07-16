@@ -35,7 +35,7 @@ public class OpenaiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
-        CompletionRequest request = new CompletionRequest("gpt-4", List.of(new CompletionMessage("user", content)));
+        CompletionRequest request = new CompletionRequest("gpt-4o", List.of(new CompletionMessage("user", content)));
         HttpEntity<CompletionRequest> requestEntity = new HttpEntity<>(request, headers);
         try {
             CompletionResponse response = restTemplate.postForObject(url + "/v1/chat/completions", requestEntity,
