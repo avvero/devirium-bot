@@ -56,7 +56,8 @@ public class GitWebhookController {
         }
         try {
             String content = mapper.map(request.file, request.content, request.links);
-            telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");
+            String targetChat = content.contains("#debug") ? gardenerChatId : deviriumChatId;
+            telegramService.sendMessage(targetChat, null, content, "MarkdownV2");
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: %s", request.file,

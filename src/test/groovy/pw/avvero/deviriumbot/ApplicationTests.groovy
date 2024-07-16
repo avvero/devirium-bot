@@ -60,6 +60,28 @@ class ApplicationTests extends Specification {
         }""", telegramRequestCaptor.bodyString, false)
     }
 
+    def "Note goes to telegram admin channel if there is a debug tag"() {
+        setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Correct"}}]}'))
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note 1.md",
+                  "content": "Note text\\n#debug #teg2"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 1
+        assertEquals("""{
+            "chat_id": "300000",
+            "text": "*Note 1*\\n\\nNote text\\n\\\\#debug \\\\#teg2",
+            "parse_mode" : "MarkdownV2"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
     def "Note goes through openai corrector successfully and goes to telegram channel"() {
         setup:
         def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
