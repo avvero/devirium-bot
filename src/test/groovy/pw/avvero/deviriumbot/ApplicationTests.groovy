@@ -98,7 +98,7 @@ class ApplicationTests extends Specification {
         then:
         openaiRequest.times == 1
         assertEquals("""{
-          "model": "gpt-4o",
+          "model": "gpt-4",
           "messages": [{
             "role": "user", 
             "content": "Please check the note below, if nothing to fix just return 'Note is correct'. Note:\\nSome note"
@@ -130,7 +130,7 @@ class ApplicationTests extends Specification {
         then:
         openaiRequest.times == 1
         assertEquals("""{
-          "model": "gpt-4o",
+          "model": "gpt-4",
           "messages": [{
             "role": "user", 
             "content": "Please check the note below, if nothing to fix just return 'Note is correct'. Note:\\nSoome note"
