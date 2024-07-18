@@ -163,6 +163,24 @@ class ApplicationTests extends Specification {
         telegramRequestCaptor.times == 0
     }
 
+    def "Draft note is skipped (considered by path)"() {
+        setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Note is correct"}}]}'))
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note 1.md",
+                  "path": "draft/Note 1.md",
+                  "content": "Note text\\n#teg1 #teg2"
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        telegramRequestCaptor.times == 0
+    }
+
     def "Note with resolved links goes to telegram channel"() {
         setup:
         restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Note is correct"}}]}'))

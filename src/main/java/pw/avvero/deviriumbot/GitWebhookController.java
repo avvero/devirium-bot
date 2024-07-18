@@ -44,7 +44,7 @@ public class GitWebhookController {
             log.debug("Index note would be ignored");
             return;
         }
-        if (request.content.contains("#draft") || request.content.contains("#notg") || request.content.contains("#wtf")) {
+        if (request.content.contains("#draft") || (request.path != null && request.path.contains("draft"))) {
             log.debug("Note {} would be ignored because of #draft tag", request.file);
             return;
         }
@@ -73,6 +73,6 @@ public class GitWebhookController {
         return new ResponseEntity<>(response, status);
     }
 
-    public record GitWebhookRequest(String file, String content, Map<String, String> links) {
+    public record GitWebhookRequest(String file, String path, String content, Map<String, String> links) {
     }
 }
