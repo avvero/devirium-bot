@@ -39,7 +39,7 @@ public class GitWebhookController {
     }
 
     @PostMapping("/git/webhook")
-    public void process(@RequestBody GitWebhookRequest request) {
+    public void process(@RequestBody GitWebhookRequest request) throws Exception {
         if ("index.md".equals(request.file)) {
             log.debug("Index note would be ignored");
             return;
@@ -48,15 +48,16 @@ public class GitWebhookController {
             log.debug("Note {} would be ignored because of #draft tag", request.file);
             return;
         }
-        // gpt-4o resist to follow instruction
-        String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + request.content);
-        if (!correctorResult.toLowerCase().contains("note is correct")) {
-            telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: Incorrect text, proposal:\n%s",
-                    request.file, correctorResult), "markdown");
-            return;
-        }
         try {
             String content = mapper.map(request.file, request.content, request.links);
+            // gpt-4o resist to follow instruction
+            String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + request.content);
+            if (!correctorResult.toLowerCase().contains("note is correct")) {
+                telegramService.sendMessage(gardenerChatId, null, content, "MarkdownV2");
+                telegramService.sendMessage(gardenerChatId, null, format("Can't process %s: Incorrect text, proposal:\n%s",
+                        request.file, correctorResult), "markdown");
+                return;
+            }
             String targetChat = content.contains("#debug") ? gardenerChatId : deviriumChatId;
             telegramService.sendMessage(targetChat, null, content, "MarkdownV2");
         } catch (Throwable e) {
@@ -68,6 +69,7 @@ public class GitWebhookController {
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<Object> handleException(Exception e) {
+        log.error(e.getLocalizedMessage(), e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         Map response = Map.of(false, "Internal server error");
         return new ResponseEntity<>(response, status);

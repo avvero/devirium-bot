@@ -122,8 +122,12 @@ class ApplicationTests extends Specification {
         mockMvc.perform(post("/git/webhook")
                 .contentType(APPLICATION_JSON_VALUE)
                 .content("""{
-                  "file": "Note.md",
-                  "content": "Soome note"
+                  "file": "Note 1.md",
+                  "content": "Note text\\n[[Note 2]]\\n[[Note-3]]\\n#teg1 #teg2",
+                  "links": {
+                    "Note 2": "2021/2021-11/Note-2",
+                    "Note-3": "2021/2021-11/Note-3"
+                  }
                 }""".toString())
                 .accept(APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -133,16 +137,49 @@ class ApplicationTests extends Specification {
           "model": "gpt-4",
           "messages": [{
             "role": "user", 
-            "content": "Please check the note below, if nothing to fix just return 'Note is correct'. Note:\\nSoome note"
+            "content": "Please check the note below, if nothing to fix just return 'Note is correct'. Note:\\nNote text\\n[[Note 2]]\\n[[Note-3]]\\n#teg1 #teg2"
           }]
         }""", openaiRequest.bodyString, false)
         openaiRequest.headers["Authorization"].last == "Bearer abc123"
         and:
-        telegramRequestCaptor.times == 1
+        telegramRequestCaptor.times == 2
+        assertEquals("""{
+            "chat_id": "300000",
+            "text": "*Note 1*\\n\\nNote text\\n[Note 2](https://devirium.com/2021/2021-11/Note-2)\\n[Note\\\\-3](https://devirium.com/2021/2021-11/Note-3)\\n\\\\#teg1 \\\\#teg2",
+            "parse_mode" : "MarkdownV2"
+        }""", telegramRequestCaptor.bodyString, false)
+        assertEquals("""{
+            "text": "Can't process Note.md: Incorrect text, proposal:\\n\\nSome note",
+            "chat_id": "300000"
+        }""", telegramRequestCaptor.bodyString, false)
+    }
+
+    def "Note goes to publication on command from gardener"() {
+        setup:
+        def telegramRequestCaptor = restExpectation.telegram.sendMessage(withSuccess("{}"))
+        def openaiRequest = restExpectation.openai.completions(withSuccess('{}'))
+        when:
+        mockMvc.perform(post("/telegram/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                    "message": {
+                        "chat": {
+                            "id": 300000
+                        },
+                        "reply_to_message": {
+                            "text": "Note"
+                        },
+                        "text": "publish"
+                    }
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        openaiRequest.times == 0
         telegramRequestCaptor.times == 1
         assertEquals("""{
-            "text": "Can't process Note.md: Incorrect text, proposal:\\nSome note",
-            "chat_id": "300000"
+            "text": "Note",
+            "chat_id": "200000"
         }""", telegramRequestCaptor.bodyString, false)
     }
 
