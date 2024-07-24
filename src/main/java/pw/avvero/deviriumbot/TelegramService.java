@@ -33,13 +33,15 @@ public class TelegramService {
     }
 
     @SneakyThrows
-    public void sendMessage(String chatId, String replyToMessageId, String text, String parseMode) {
+    public SendMessageResult sendMessage(String chatId, String text, String parseMode) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        SendMessageRequest request = new SendMessageRequest(chatId, replyToMessageId, text, parseMode);
+        SendMessageRequest request = new SendMessageRequest(chatId, null, text, parseMode);
         HttpEntity<SendMessageRequest> requestEntity = new HttpEntity<>(request, headers);
         try {
-            restTemplate.postForObject(url + "/" + token + "/sendMessage?disable_web_page_preview=true", requestEntity, Object.class);
+            SendMessageResponse response = restTemplate.postForObject(url + "/" + token + "/sendMessage?disable_web_page_preview=true",
+                    requestEntity, SendMessageResponse.class);
+            return response.result;
         } catch (HttpClientErrorException e) {
             log.error(e.getMessage(), e);
             SendMessageResponse response = objectMapper.readValue(e.getResponseBodyAsString(), SendMessageResponse.class);
@@ -56,8 +58,10 @@ public class TelegramService {
                                      @JsonProperty("parse_mode") String parseMode) {
     }
 
-    public record SendMessageResponse(boolean ok, String description) {
+    public record SendMessageResponse(boolean ok, String description, SendMessageResult result) {
     }
+
+    public record SendMessageResult(@JsonProperty("message_id") String messageId) {}
 
     @Data
     @EqualsAndHashCode(callSuper = true)

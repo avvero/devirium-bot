@@ -15,15 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class TelegramWebhookController {
 
     private final TelegramService telegramService;
-    private final String deviriumChatId;
+    private final PublicationService publicationService;
     private final String gardenerChatId;
 
     public TelegramWebhookController(TelegramService telegramService,
-                                     @Value("${devirium.chatId}") String deviriumChatId,
+                                     PublicationService publicationService,
                                      @Value("${devirium.gardenerChatId}") String gardenerChatId) {
         this.telegramService = telegramService;
-
-        this.deviriumChatId = deviriumChatId;
+        this.publicationService = publicationService;
         this.gardenerChatId = gardenerChatId;
     }
 
@@ -31,10 +30,10 @@ public class TelegramWebhookController {
     public void process(@RequestBody TelegramWebhookMessage request) {
         if (request.message.replayToMessage == null) return;
         if (!gardenerChatId.equals(request.message.chat.id)) {
-            throw new RuntimeException("Unsupported call from chat " + request.message.chat.id);
+            telegramService.sendMessage(gardenerChatId, "Unsupported call from chat " + request.message.chat.id, "markdown");
+            return;
         }
-        String content = request.message.replayToMessage.text;
-        telegramService.sendMessage(deviriumChatId, null, content, "MarkdownV2");
+        publicationService.publishAfterReview(request.message.replayToMessage.id);
     }
 
     public record TelegramWebhookMessage(Message message) {
@@ -52,7 +51,7 @@ public class TelegramWebhookController {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<Object> handleException(Exception e) {
         log.error(e.getLocalizedMessage(), e);
-        telegramService.sendMessage(gardenerChatId, null, e.getMessage(), "markdown");
+        telegramService.sendMessage(gardenerChatId, e.getMessage(), "markdown");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

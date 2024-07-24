@@ -1,5 +1,6 @@
 package pw.avvero.deviriumbot;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,6 +8,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @SpringBootApplication
 public class DeviriumBotApplication {
 
@@ -31,7 +33,11 @@ public class DeviriumBotApplication {
 
         @Override
         public void onApplicationEvent(ContextRefreshedEvent event) {
-            telegramService.sendMessage(gardenerChatId, null, "Bot is ready to work", "markdown");
+            try {
+                telegramService.sendMessage(gardenerChatId, "Bot is ready to work", "markdown");
+            } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+            }
         }
     }
 }
