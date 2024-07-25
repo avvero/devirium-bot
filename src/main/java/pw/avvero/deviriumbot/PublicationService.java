@@ -44,6 +44,10 @@ public class PublicationService {
             log.debug("Note {} would be ignored because of it's a draft", name);
             return;
         }
+        if (content.contains("#book")) {
+            log.debug("Note {} would be ignored because of it's a book link", name);
+            return;
+        }
         try {
             String telegramMessageBody = mapper.map(name, content, links);
             // gpt-4o resist to follow instruction
