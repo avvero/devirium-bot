@@ -16,6 +16,7 @@ public class TelegramMessageMapper {
 
     public static final Pattern ZET_LINK = Pattern.compile("\\[\\[.*?\\]\\]");
     public static final Pattern MD_LINK = Pattern.compile("\\[([^\\]]+)\\]\\(([^\\)]+)\\)");
+    public static final Pattern IMAGE_LINK = Pattern.compile("!\\[.*?\\]\\(.*?\\)\\s*");
 
     private final String deviriumLink;
 
@@ -25,6 +26,9 @@ public class TelegramMessageMapper {
 
     public String map(String fileName, String content, Map<String, String> links) throws Exception {
         Map<String, String> meta = new HashMap<>();
+        // Remove links to images
+        Matcher matcher = IMAGE_LINK.matcher(content);
+        content = matcher.replaceAll("");
         // Extract meta
         content = extractMeta(content, meta, ZET_LINK, MD_LINK);
         content = escape(content);
@@ -69,5 +73,9 @@ public class TelegramMessageMapper {
             }
         }
         return content;
+    }
+
+    public String getUrlForPhoto(String link) {
+        return format("%s/%s", deviriumLink, link);
     }
 }

@@ -22,7 +22,7 @@ public class GitWebhookController {
 
     @PostMapping("/git/webhook")
     public void process(@RequestBody GitWebhookRequest request) throws Exception {
-        publicationService.publishNote(request.file, request.path, request.content, request.links);
+        publicationService.publishNote(request.file, request.path, request.content, request.links, request.images);
     }
 
     @ExceptionHandler(value = Exception.class)
@@ -33,6 +33,10 @@ public class GitWebhookController {
         return new ResponseEntity<>(response, status);
     }
 
-    public record GitWebhookRequest(String file, String path, String content, Map<String, String> links) {
+    public record GitWebhookRequest(String file,
+                                    String path,
+                                    String content,
+                                    Map<String, String> links,
+                                    Map<String, String> images) {
     }
 }

@@ -61,7 +61,8 @@ public class TelegramService {
     public record SendMessageResponse(boolean ok, String description, SendMessageResult result) {
     }
 
-    public record SendMessageResult(@JsonProperty("message_id") String messageId) {}
+    public record SendMessageResult(@JsonProperty("message_id") String messageId) {
+    }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
@@ -70,5 +71,37 @@ public class TelegramService {
         public TelegramException(String message) {
             super(message);
         }
+    }
+
+    @SneakyThrows
+    public SendPhotoResult sendPhoto(String chatId, String photo, String caption, String parseMode) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var request = new SendPhotoRequest(chatId, photo, caption, parseMode);
+        HttpEntity<SendPhotoRequest> requestEntity = new HttpEntity<>(request, headers);
+        try {
+            SendPhotoResponse response = restTemplate.postForObject(url + "/" + token + "/sendPhoto",
+                    requestEntity, SendPhotoResponse.class);
+            return response.result;
+        } catch (HttpClientErrorException e) {
+            log.error(e.getMessage(), e);
+            SendMessageResponse response = objectMapper.readValue(e.getResponseBodyAsString(), SendMessageResponse.class);
+            if (!response.ok) {
+                throw new TelegramException(response.description);
+            }
+            throw e;
+        }
+    }
+
+    public record SendPhotoRequest(@JsonProperty("chat_id") String chatId,
+                                   String photo,
+                                   String caption,
+                                   @JsonProperty("parse_mode") String parseMode) {
+    }
+
+    public record SendPhotoResponse(boolean ok, String description, SendPhotoResult result) {
+    }
+
+    public record SendPhotoResult(@JsonProperty("message_id") String messageId) {
     }
 }

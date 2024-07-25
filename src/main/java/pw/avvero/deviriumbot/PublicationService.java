@@ -35,7 +35,7 @@ public class PublicationService {
         this.correctorPrompt = correctorPrompt;
     }
 
-    public void publishNote(String name, String path, String content, Map<String, String> links) {
+    public void publishNote(String name, String path, String content, Map<String, String> links, Map<String, String> images) {
         if ("index.md".equals(name)) {
             log.debug("Index note would be ignored");
             return;
@@ -56,7 +56,12 @@ public class PublicationService {
                 return;
             }
             String targetChat = telegramMessageBody.contains("#debug") ? gardenerChatId : deviriumChatId;
-            telegramService.sendMessage(targetChat, telegramMessageBody, "MarkdownV2");
+            if (images != null && !images.isEmpty()) {
+                String linkToPhoto = mapper.getUrlForPhoto(images.values().stream().findFirst().get());
+                telegramService.sendPhoto(targetChat, linkToPhoto, telegramMessageBody, "MarkdownV2");
+            } else {
+                telegramService.sendMessage(targetChat, telegramMessageBody, "MarkdownV2");
+            }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             telegramService.sendMessage(gardenerChatId, format("Can't process %s: %s", name, e.getMessage()), "markdown");
@@ -64,7 +69,7 @@ public class PublicationService {
     }
 
     public void publishAfterReview(String messageId) {
-        String telegramMessageBody = notesOnReview.get(messageId);
+        String telegramMessageBody = notesOnReview.remove(messageId);
         if (telegramMessageBody == null) {
             telegramService.sendMessage(gardenerChatId, format("Can't find message to publish after review: %s", messageId), "markdown");
             return;

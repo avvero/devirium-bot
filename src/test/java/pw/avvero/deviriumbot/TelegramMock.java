@@ -5,4 +5,5 @@ import pw.avvero.test.http.RequestCaptor;
 
 public interface TelegramMock {
     RequestCaptor sendMessage(ResponseCreator responseCreator);
+    RequestCaptor sendPhoto(ResponseCreator responseCreator);
 }

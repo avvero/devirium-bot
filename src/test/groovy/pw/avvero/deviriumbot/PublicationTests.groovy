@@ -293,4 +293,34 @@ class PublicationTests extends Specification {
             "chat_id": "300000"
         }""", telegramRequestCaptor.bodyString, false)
     }
+
+    def "Photo goes to telegram channel"() {
+        setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Note is correct"}}]}'))
+        def sendPhotoRequestCaptor = restExpectation.telegram.sendPhoto(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content("""{
+                  "file": "Note 1.md",
+                  "content": "Note text\\n[[Note 2]]\\n[[Note-3]]\\n![](neurostorage.jpg)\\n#teg1 #teg2",
+                  "links": {
+                    "Note 2": "2021/2021-11/Note-2",
+                    "Note-3": "2021/2021-11/Note-3"
+                  },
+                  "images": {
+                      "neurostorage.jpg": "draft/neurostorage.jpg"
+                    }
+                }""".toString())
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        sendPhotoRequestCaptor.times == 1
+        assertEquals("""{
+            "chat_id": "200000",
+            "photo": "https://devirium.com/draft/neurostorage.jpg",
+            "caption": "*Note 1*\\n\\nNote text\\n[Note 2](https://devirium.com/2021/2021-11/Note-2)\\n[Note\\\\-3](https://devirium.com/2021/2021-11/Note-3)\\n\\\\#teg1 \\\\#teg2",
+            "parse_mode" : "MarkdownV2"
+        }""", sendPhotoRequestCaptor.bodyString, false)
+    }
 }
