@@ -44,8 +44,8 @@ public class PublicationService {
             log.debug("Note {} would be ignored because of it's a draft", name);
             return;
         }
-        if (content.contains("#book")) {
-            log.debug("Note {} would be ignored because of it's a book link", name);
+        if (content.contains("#book") || content.contains("#cv") || content.contains("#aboutme")) {
+            log.debug("Note {} would be ignored because of it has tag to omit publication", name);
             return;
         }
         try {
