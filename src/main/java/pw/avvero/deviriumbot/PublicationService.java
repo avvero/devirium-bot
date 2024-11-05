@@ -44,6 +44,10 @@ public class PublicationService {
             log.debug("Note {} would be ignored because of it's a draft", name);
             return;
         }
+        if (content.contains("#limbo") || (path != null && path.contains("limbo"))) {
+            log.debug("Note {} would be ignored because of it's a limbo", name);
+            return;
+        }
         if (content.contains("#person") || content.contains("#book") || content.contains("#cv") || content.contains("#aboutme") || content.contains("#ignore")) {
             log.debug("Note {} would be ignored because of it has tag to omit publication", name);
             return;
