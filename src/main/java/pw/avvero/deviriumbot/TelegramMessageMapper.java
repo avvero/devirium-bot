@@ -27,7 +27,7 @@ public class TelegramMessageMapper {
     public String map(String fileName, String filePath, String content, Map<String, String> links) throws Exception {
         Map<String, String> meta = new HashMap<>();
         // Trim
-        if (content.getBytes().length > 2048) {
+        if (content.length() > 2048) {
             content = content.substring(0, 2048);
             String link = filePath.replace(".md", "").replace(" ", "-");
             content += "...\n\nПолный текст в " + format("[%s](%s/%s)", escape(fileName.replace(".md", "")), deviriumLink, link);
