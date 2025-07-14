@@ -323,4 +323,19 @@ class PublicationTests extends Specification {
             "parse_mode" : "MarkdownV2"
         }""", sendPhotoRequestCaptor.bodyString, false)
     }
+
+    def "Big note to telegram channel trimmed to size"() {
+        setup:
+        restExpectation.openai.completions(withSuccess('{"choices": [{"message": {"content": "Note is correct"}}]}'))
+        def sendPhotoRequestCaptor = restExpectation.telegram.sendPhoto(withSuccess("{}"))
+        when:
+        mockMvc.perform(post("/git/webhook")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(fromFile("bigNote.json"))
+                .accept(APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+        then:
+        sendPhotoRequestCaptor.times == 1
+        assertEquals(fromFile("bigNoteTrimmedSendPhotoRequest.json"), sendPhotoRequestCaptor.bodyString, false)
+    }
 }

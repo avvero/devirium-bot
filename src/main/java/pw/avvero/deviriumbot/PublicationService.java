@@ -53,7 +53,7 @@ public class PublicationService {
             return;
         }
         try {
-            String telegramMessageBody = mapper.map(name, content, links);
+            String telegramMessageBody = mapper.map(name, path, content, links);
             // gpt-4o resist to follow instruction
             String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + content);
             if (!correctorResult.toLowerCase().contains("note is correct")) {
