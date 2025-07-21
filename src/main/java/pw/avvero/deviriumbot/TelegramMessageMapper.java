@@ -24,11 +24,12 @@ public class TelegramMessageMapper {
         this.deviriumLink = deviriumLink;
     }
 
-    public String map(String fileName, String filePath, String content, Map<String, String> links) throws Exception {
+    public String map(String fileName, String filePath, String content, Map<String, String> links, boolean hasPhoto) throws Exception {
         Map<String, String> meta = new HashMap<>();
+        int messageLimit = hasPhoto ? 700 : 3000;
         // Trim
-        if (content.length() > 700) {
-            content = content.substring(0, 700);
+        if (content.length() > messageLimit) {
+            content = content.substring(0, messageLimit);
             String link = filePath.replace(".md", "").replace(" ", "-");
             content += "...\n\nПолный текст в " + format("[%s](%s/%s)", escape(fileName.replace(".md", "")), deviriumLink, link);
         }

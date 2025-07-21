@@ -53,7 +53,8 @@ public class PublicationService {
             return;
         }
         try {
-            String telegramMessageBody = mapper.map(name, path, content, links);
+            boolean hasPhoto = images != null && !images.isEmpty();
+            String telegramMessageBody = mapper.map(name, path, content, links, hasPhoto);
             // gpt-4o resist to follow instruction
             String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + content);
             if (!correctorResult.toLowerCase().contains("note is correct")) {
@@ -64,7 +65,7 @@ public class PublicationService {
                 return;
             }
             String targetChat = telegramMessageBody.contains("#debug") ? gardenerChatId : deviriumChatId;
-            if (images != null && !images.isEmpty()) {
+            if (hasPhoto) {
                 String linkToPhoto = mapper.getUrlForPhoto(images.values().stream().findFirst().get());
                 telegramService.sendPhoto(targetChat, linkToPhoto, telegramMessageBody, "MarkdownV2");
             } else {
