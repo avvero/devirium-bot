@@ -7,4 +7,4 @@
 
 # Devirium Bot Application
 
-Part of the Devirium project, please refer to https://devirium.avvero.pw/2024-07/How-I-Built-Devirium to get more information.
+Part of the Devirium project, please refer to https://duckuments.avvero.pw/2024-07/How-I-Built-Devirium to get more information.
