@@ -31,7 +31,7 @@ public class TelegramMessageMapper {
         if (content.length() > messageLimit) {
             content = content.substring(0, messageLimit);
             String link = filePath.replace(".md", "").replace(" ", "-");
-            content += "...\n\nУпс, текст не влез под пост с изображением, дочитать можно в " + format("[%s](%s/%s)", escape(fileName.replace(".md", "")), deviriumLink, link);
+            content += "...\n\nУпс, текст не влез — продолжение тут: " + format("[%s](%s/%s)", escape(fileName.replace(".md", "")), deviriumLink, link);
         }
         // Remove links to images
         Matcher matcher = IMAGE_LINK.matcher(content);
