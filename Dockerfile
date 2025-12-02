@@ -18,11 +18,13 @@ RUN ./gradlew installBootDist --no-daemon
 ####
 # Runtime image
 ####
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 RUN groupadd --system appgroup && useradd --system -g appgroup appuser
 
 COPY --from=build /app/build/install/devirium-bot-boot devirium-bot-boot
+
+ENV JAVA_OPTS="-Xss512k"
 
 RUN chown -R appuser:appgroup /devirium-bot-boot
 
