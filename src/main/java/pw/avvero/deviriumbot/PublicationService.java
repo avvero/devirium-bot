@@ -56,7 +56,7 @@ public class PublicationService {
             boolean hasPhoto = images != null && !images.isEmpty();
             String telegramMessageBody = mapper.map(name, path, content, links, hasPhoto);
             // gpt-4o resist to follow instruction
-            String correctorResult = openaiService.process("gpt-4", correctorPrompt + "\n" + content);
+            String correctorResult = openaiService.process("gpt-5.2", correctorPrompt + "\n" + content);
             if (!correctorResult.toLowerCase().contains("note is correct")) {
                 var messageToReview = telegramService.sendMessage(gardenerChatId, telegramMessageBody, "MarkdownV2");
                 notesOnReview.put(messageToReview.messageId(), telegramMessageBody);
