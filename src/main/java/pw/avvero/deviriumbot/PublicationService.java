@@ -13,13 +13,25 @@ import static java.lang.String.format;
 @Component
 public class PublicationService {
 
+    private class NoteEntry {
+        String body;
+        Boolean hasPhoto;
+        String linkToPhoto;
+
+        public NoteEntry(String body, Boolean hasPhoto, String linkToPhoto) {
+            this.body = body;
+            this.hasPhoto = hasPhoto;
+            this.linkToPhoto = linkToPhoto;
+        }
+    }
+
     private final TelegramService telegramService;
     private final OpenaiService openaiService;
     private final TelegramMessageMapper mapper;
     private final String deviriumChatId;
     private final String gardenerChatId;
     private final String correctorPrompt;
-    private final Map<String, String> notesOnReview = new ConcurrentHashMap<>();
+    private final Map<String, NoteEntry> notesOnReview = new ConcurrentHashMap<>();
 
     public PublicationService(TelegramService telegramService,
                               OpenaiService openaiService,
@@ -59,7 +71,11 @@ public class PublicationService {
             String correctorResult = openaiService.process("gpt-5.2", correctorPrompt + "\n" + content);
             if (!correctorResult.toLowerCase().contains("note is correct")) {
                 var messageToReview = telegramService.sendMessage(gardenerChatId, telegramMessageBody, "MarkdownV2");
-                notesOnReview.put(messageToReview.messageId(), telegramMessageBody);
+                NoteEntry noteEntry = new NoteEntry(telegramMessageBody, hasPhoto, null);
+                if (hasPhoto) {
+                    noteEntry.linkToPhoto = mapper.getUrlForPhoto(images.values().stream().findFirst().get());
+                }
+                notesOnReview.put(messageToReview.messageId(), noteEntry);
                 telegramService.sendMessage(gardenerChatId, format("Can't process %s: Incorrect text, proposal:\n%s",
                         name, correctorResult), "markdown");
                 return;
@@ -78,13 +94,17 @@ public class PublicationService {
     }
 
     public void publishAfterReview(String messageId) {
-        String telegramMessageBody = notesOnReview.remove(messageId);
-        if (telegramMessageBody == null) {
+        NoteEntry noteEntry = notesOnReview.remove(messageId);
+        if (noteEntry == null) {
             telegramService.sendMessage(gardenerChatId, format("Can't find message to publish after review: %s", messageId), "markdown");
             return;
         }
         try {
-            telegramService.sendMessage(deviriumChatId, telegramMessageBody, "MarkdownV2");
+            if (noteEntry.hasPhoto) {
+                telegramService.sendPhoto(deviriumChatId, noteEntry.linkToPhoto, noteEntry.body, "MarkdownV2");
+            } else {
+                telegramService.sendMessage(deviriumChatId, noteEntry.body, "MarkdownV2");
+            }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             telegramService.sendMessage(gardenerChatId, format("Can't process note after review: %s", e.getMessage()), "markdown");
